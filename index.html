@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>心理咨询师职业路径测评</title>
+<style>
+:root{
+  --bg:#fbfaf7; --card:#ffffff; --border:#e6e4dc; --border-strong:#cfccc0;
+  --text:#26221c; --text-2:#6b675c;
+  --accent:#0f6e56; --accent-bg:#e1f5ee; --accent-text:#085041;
+  --coral-bg:#faece7; --coral-text:#712b13;
+  --gray-bg:#f1efe8; --gray-text:#444441;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1c1b16; --card:#242319; --border:#3a382c; --border-strong:#4d4a3c;
+    --text:#ece9df; --text-2:#a8a495;
+    --accent:#5dcaa5; --accent-bg:#0f6e56; --accent-text:#9fe1cb;
+    --coral-bg:#712b13; --coral-text:#f5c4b3;
+    --gray-bg:#444441; --gray-text:#d3d1c7;
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  display:flex; justify-content:center; padding:40px 16px; min-height:100vh;
+}
+.wrap{width:100%; max-width:460px;}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:30px 24px; animation:fade .35s ease;
+}
+@media (prefers-reduced-motion: reduce){.card{animation:none;}}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+h1{font-size:19px; font-weight:600; margin:0 0 6px; text-align:center;}
+.sub{font-size:14px; color:var(--text-2); text-align:center; line-height:1.6; margin:0 0 22px;}
+button{
+  font-family:inherit; font-size:15px; cursor:pointer; border-radius:10px;
+  border:1px solid var(--border); background:var(--card); color:var(--text);
+  transition:border-color .15s, background .15s;
+}
+button:hover{border-color:var(--border-strong); background:var(--bg);}
+button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.opt{display:block; width:100%; text-align:left; padding:14px 16px; margin-bottom:10px;}
+.primary{display:block; width:100%; text-align:center; padding:13px; font-weight:600; background:var(--accent); color:#fff; border:none;}
+.primary:hover{opacity:.9; background:var(--accent);}
+.dots{display:flex; justify-content:center; gap:6px; margin-bottom:18px;}
+.dot{width:6px; height:6px; border-radius:50%; background:var(--border-strong);}
+.dot.active{background:var(--accent);}
+.qtext{font-size:16px; font-weight:600; margin-bottom:16px;}
+.label{font-size:13px; color:var(--text-2); margin-bottom:4px; margin-top:20px;}
+.label:first-of-type{margin-top:0;}
+.stage{font-size:16px; font-weight:600;}
+.badge{display:inline-block; padding:5px 14px; border-radius:20px; font-size:14px; font-weight:600;}
+ul.tips{padding-left:20px; margin:8px 0 0; font-size:14px; line-height:1.7;}
+ul.tips li{margin-bottom:8px;}
+.honest-note{
+  margin-top:20px; padding:14px 16px; border-radius:10px;
+  background:var(--bg); border-left:3px solid var(--accent);
+  font-size:13.5px; line-height:1.7; color:var(--text-2); font-style:italic;
+}
+.loading{text-align:center; padding:48px 0; color:var(--text-2); font-size:14px;}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="quiz-root"></div></div>
+<script>
+const questions = [
+  { q: "你现在大概处于哪个阶段？", opts: ["高中或本科在读","本科应届或毕业1-2年","已经在读心理学相关研究生","工作几年后考虑转行"] },
+  { q: "本科（或在读）专业跟心理学相关吗？", opts: ["心理学专业","医学/教育学/社工等相关专业","完全不相关，准备跨专业"] },
+  { q: "你更想面对哪一类人群？", opts: ["医院里确诊的心理疾病患者，配合临床治疗","心理健康人群的情绪、关系、职业困扰","还没想清楚，两种都想接触看看"] },
+  { q: "你更看重下面哪种工作状态？", opts: ["体制内医院的稳定编制和职称晋升","独立执业或机构坐诊的自主和灵活度","都可以，先积累经验再说"] }
+];
+
+const stageMap = [
+  { label: "打基础阶段（本科或转专业准备）", tips: [
+      "本科专业不用纠结对不对口——应用心理硕士基本什么背景都招，选自己真正感兴趣、能维持好成绩的专业就行",
+      "如果学校能选修，可以蹭一些心理学基础课打底（普通心理学、发展心理学），但这只是加分项，不是必须",
+      "从学校心理社团、朋辈辅导员培训做起，这是门槛最低的第一步",
+      "心理热线志愿者大多要求18岁以上，高中阶段可以先攒朋辈辅导经验，上大学再考虑热线",
+      "读一本靠谱的入门书打底，比零散刷科普文章更扎实"
+  ]},
+  { label: "即将进入应用心理硕士阶段", tips: [
+      "把择校范围收窄到「临床与咨询」方向的项目，避免选到人力资源方向的应用心理硕士",
+      "提前自学普通心理学、发展心理学，专业课是学校自主命题，跨专业相对友好",
+      "早点定目标院校——不同学校专业课参考书目差异较大，早确定能省不少复习时间",
+      "本科阶段的实习和志愿经历现在就要开始攒，申请材料里这些经历很重要"
+  ]},
+  { label: "研究生在读，正在积累实践阶段", tips: [
+      "从现在开始留存实习证明和被督导记录，以后能直接用于注册申请",
+      "尽快想清楚毕业后走独立咨询还是医院体制内，两条路要准备的材料完全不一样",
+      "找一个稳定的督导，尽量做连续的个案而不是零散接触，被督导小时数的「含金量」看连续性",
+      "可以先小范围做一些线上咨询平台的兼职，提前适应真实来访者"
+  ]},
+  { label: "转行准备阶段", tips: [
+      "先确认要不要读应用心理硕士——这是目前认可度最高的入行路径，跨专业考生很常见",
+      "可以先从心理热线志愿者或朋辈辅导做起，边确认兴趣边攒经验，别一上来就裸辞",
+      "如果现在的工作和心理学沾点边（HR、教育、医疗相关），想想怎么把现有经验写进申请材料，会比完全跨行的申请人更有优势"
+  ]}
+];
+
+const trackInfo = {
+  hospital: { label: "医院体制内方向", bg: "var(--coral-bg)", fg: "var(--coral-text)",
+    tips: [
+      "目标是心理治疗师资格考试——国家卫健委和人社部联合发证，但要先进医疗机构工作，个人没法单独报名",
+      "求职时优先看医院精神科或心理科的岗位，为报考积累对口工作年限"
+    ],
+    note: "医院体制内这条路胜在稳定和成体系的职称晋升，但前期基本是打杂加跟诊，独立决策的空间比想象中小——如果你更看重自主和灵活度，这条路未必是最优选。"
+  },
+  independent: { label: "独立咨询方向", bg: "var(--accent-bg)", fg: "var(--accent-text)",
+    tips: [
+      "目标是中国心理学会的「注册心理师」——需要硕士学位、毕业满1年、攒够被督导小时数",
+      "读研期间就可以开始攒被督导的个体和团体小时数"
+    ],
+    note: "独立咨询这条路前几年基本靠低价个案和自己掏钱做督导熬资历，收入不稳定是常态——能不能扛到「熬出头」，很大程度取决于经济基础和心理预期是否匹配。"
+  },
+  undecided: { label: "两条路都还可以先探索", bg: "var(--gray-bg)", fg: "var(--gray-text)",
+    tips: [
+      "两条路对硕士学位的要求是一样的，读研期间不用急着二选一",
+      "可以借实习机会分别体验医院和独立咨询机构的工作日常，再做决定"
+    ],
+    note: "这两条路的辛苦程度都容易被低估——不是一份靠热情就能撑起来的工作，建议尽早找机会真实接触一段时间（哪怕只是做几个月志愿者），再决定要不要往下走。"
+  }
+};
+
+const resources = [
+  "《心理学与生活》——入门教材，比零散的科普文章扎实，很多学校的普心课也用这本",
+  "中国心理学会官网（chinacpb.net）——注册心理师的标准原文在这里，别只看培训机构的转述"
+];
+
+let currentIndex = 0;
+let answers = [];
+const root = document.getElementById("quiz-root");
+
+function pathGraphic(){
+  return '<svg width="100%" height="36" viewBox="0 0 300 36" style="display:block; margin:0 auto 20px;">' +
+    '<line x1="20" y1="18" x2="280" y2="18" stroke="var(--border)" stroke-width="2"/>' +
+    '<circle cx="20" cy="18" r="6" fill="var(--border-strong)"/>' +
+    '<circle cx="85" cy="18" r="6" fill="var(--border-strong)"/>' +
+    '<circle cx="150" cy="18" r="9" fill="var(--accent)"/>' +
+    '<circle cx="215" cy="18" r="6" fill="var(--border-strong)"/>' +
+    '<circle cx="280" cy="18" r="6" fill="var(--border-strong)"/>' +
+  '</svg>';
+}
+function showIntro(){
+  currentIndex = 0; answers = [];
+  root.innerHTML = '<div class="card">' + pathGraphic() +
+    '<h1>心理咨询师职业路径测评</h1>' +
+    '<p class="sub">回答4个小问题，看看你现在在哪个阶段，更适合哪条路</p>' +
+    '<button class="primary" onclick="startQuiz()">开始测评 →</button></div>';
+}
+function startQuiz(){ currentIndex = 0; answers = []; showQuestion(); }
+function renderDots(){
+  let out = '<div class="dots">';
+  for(let i=0;i<questions.length;i++){ out += '<span class="dot' + (i===currentIndex?' active':'') + '"></span>'; }
+  return out + '</div>';
+}
+function showQuestion(){
+  const item = questions[currentIndex];
+  let opts = '';
+  item.opts.forEach(function(opt,i){ opts += '<button class="opt" onclick="selectAnswer(' + i + ')">' + opt + '</button>'; });
+  root.innerHTML = '<div class="card">' + renderDots() + '<div class="qtext">' + item.q + '</div>' + opts + '</div>';
+}
+function selectAnswer(i){
+  answers[currentIndex] = i;
+  currentIndex++;
+  if(currentIndex < questions.length){ showQuestion(); } else { showSubmitting(); }
+}
+function showSubmitting(){
+  root.innerHTML = '<div class="card"><div class="loading">正在生成你的专属建议…</div></div>';
+  setTimeout(showResult, 900);
+}
+function computeResult(){
+  const stage = stageMap[answers[0]];
+  let h = 0, ind = 0;
+  if(answers[2] === 0) h++;
+  if(answers[2] === 1) ind++;
+  if(answers[3] === 0) h++;
+  if(answers[3] === 1) ind++;
+  let key = 'undecided';
+  if(h > ind) key = 'hospital'; else if(ind > h) key = 'independent';
+  return { stage: stage, track: trackInfo[key], crossMajor: answers[1] === 2 };
+}
+function showResult(){
+  const r = computeResult();
+  let tips = r.stage.tips.concat(r.track.tips);
+  if(r.crossMajor){ tips.push("跨专业不是问题，但专业课备考建议比心理学本科的同学多留2-3个月时间"); }
+  const tipsHtml = tips.map(function(t){ return '<li>' + t + '</li>'; }).join('');
+  const resHtml = resources.map(function(t){ return '<li>' + t + '</li>'; }).join('');
+  root.innerHTML = '<div class="card">' +
+    '<div class="label">当前阶段</div><div class="stage">' + r.stage.label + '</div>' +
+    '<div class="label">更适合的方向</div>' +
+    '<div class="badge" style="background:' + r.track.bg + '; color:' + r.track.fg + ';">' + r.track.label + '</div>' +
+    '<div class="label">具体可以做的事</div><ul class="tips">' + tipsHtml + '</ul>' +
+    '<div class="label">推荐资源</div><ul class="tips">' + resHtml + '</ul>' +
+    '<div class="honest-note">' + r.track.note + '</div>' +
+    '<button class="primary" onclick="showIntro()" style="margin-top:20px;">重新测一次</button>' +
+  '</div>';
+}
+showIntro();
+</script>
+</body>
+</html>
