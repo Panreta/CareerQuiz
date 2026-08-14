@@ -10,16 +10,12 @@
   --bg:#fbfaf7; --card:#ffffff; --border:#e6e4dc; --border-strong:#cfccc0;
   --text:#26221c; --text-2:#6b675c;
   --accent:#db2777; --accent-bg:#fce7f3; --accent-text:#9d174d;
-  --coral-bg:#faece7; --coral-text:#712b13;
-  --gray-bg:#f1efe8; --gray-text:#444441;
 }
 @media (prefers-color-scheme: dark){
   :root{
     --bg:#1c1b16; --card:#242319; --border:#3a382c; --border-strong:#4d4a3c;
     --text:#ece9df; --text-2:#a8a495;
     --accent:#f472b6; --accent-bg:#831843; --accent-text:#fbcfe8;
-    --coral-bg:#712b13; --coral-text:#f5c4b3;
-    --gray-bg:#444441; --gray-text:#d3d1c7;
   }
 }
 *{box-sizing:border-box;}
@@ -47,20 +43,22 @@ button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .opt{display:block; width:100%; text-align:left; padding:14px 16px; margin-bottom:10px;}
 .primary{display:block; width:100%; text-align:center; padding:13px; font-weight:600; background:var(--accent); color:#fff; border:none;}
 .primary:hover{opacity:.9; background:var(--accent);}
-.dots{display:flex; justify-content:center; gap:6px; margin-bottom:18px;}
+.dots{display:flex; justify-content:center; gap:5px; margin-bottom:18px; flex-wrap:wrap;}
 .dot{width:6px; height:6px; border-radius:50%; background:var(--border-strong);}
 .dot.active{background:var(--accent);}
 .qtext{font-size:16px; font-weight:600; margin-bottom:16px;}
 .label{font-size:13px; color:var(--text-2); margin-bottom:4px; margin-top:20px;}
 .label:first-of-type{margin-top:0;}
-.stage{font-size:16px; font-weight:600;}
-.badge{display:inline-block; padding:5px 14px; border-radius:20px; font-size:14px; font-weight:600;}
 ul.tips{padding-left:20px; margin:8px 0 0; font-size:14px; line-height:1.7;}
 ul.tips li{margin-bottom:8px;}
+.profile li{margin-bottom:10px;}
+.profile li::marker{color:#db2777;}
+.book-pick{margin-top:4px; font-size:12.5px; color:#8b5cf6; line-height:1.5;}
+.books li::marker{color:#8b5cf6;}
 .honest-note{
-  margin-top:20px; padding:14px 16px; border-radius:10px;
-  background:var(--bg); border-left:3px solid var(--accent);
-  font-size:13.5px; line-height:1.7; color:var(--text-2); font-style:italic;
+  margin-top:8px; padding:14px 16px; border-radius:10px;
+  background:var(--bg); border-left:3px solid #d97706;
+  font-size:13.5px; line-height:1.7; color:var(--text-2);
 }
 .loading{text-align:center; padding:48px 0; color:var(--text-2); font-size:14px;}
 </style>
@@ -69,67 +67,98 @@ ul.tips li{margin-bottom:8px;}
 <div class="wrap"><div id="quiz-root"></div></div>
 <script>
 const questions = [
-  { q: "你现在大概处于哪个阶段？", opts: ["高中或本科在读","本科应届或毕业1-2年","已经在读心理学相关研究生","工作几年后考虑转行"] },
-  { q: "本科（或在读）专业跟心理学相关吗？", opts: ["心理学专业","医学/教育学/社工等相关专业","完全不相关，准备跨专业"] },
-  { q: "你更想面对哪一类人群？", opts: ["医院里确诊的心理疾病患者，配合临床治疗","心理健康人群的情绪、关系、职业困扰","还没想清楚，两种都想接触看看"] },
-  { q: "你更看重下面哪种工作状态？", opts: ["体制内医院的稳定编制和职称晋升","独立执业或机构坐诊的自主和灵活度","都可以，先积累经验再说"] }
+  { q: "你现在是高几？", opts: ["高一","高二","高三","已经高中毕业，准备上大学"] },
+  { q: "朋友遇到烦心事，会主动来找你聊吗？", opts: ["经常，很多人愿意找我聊","偶尔，看情况","很少"] },
+  { q: "看到别人难过或哭的时候，你通常会", opts: ["想办法安慰、陪着他","有点不知所措，但还是留在旁边","先给对方一点空间"] },
+  { q: "自己遇到困扰的时候，你通常会", opts: ["找人聊一聊","自己消化，写日记或想清楚","做点别的事转移注意力（运动、爱好等）"] },
+  { q: "你更喜欢", opts: ["一对一的深聊","一群人一起的热闹氛围","看心情，两种都可以"] },
+  { q: "有没有读过心理学相关的书？", opts: ["读过一些，感觉还不错","完全没读过，从零开始","读过，但感觉太难懂了"] }
 ];
 
-const stageMap = [
-  { label: "打基础阶段（本科或转专业准备）", tips: [
-      "本科专业不用纠结对不对口——应用心理硕士基本什么背景都招，选自己真正感兴趣、能维持好成绩的专业就行",
-      "如果学校能选修，可以蹭一些心理学基础课打底（普通心理学、发展心理学），但这只是加分项，不是必须",
-      "从学校心理社团、朋辈辅导员培训做起，这是门槛最低的第一步",
-      "心理热线志愿者大多要求18岁以上，高中阶段可以先攒朋辈辅导经验，上大学再考虑热线",
-      "读一本靠谱的入门书打底，比零散刷科普文章更扎实"
-  ]},
-  { label: "即将进入应用心理硕士阶段", tips: [
-      "把择校范围收窄到「临床与咨询」方向的项目，避免选到人力资源方向的应用心理硕士",
-      "提前自学普通心理学、发展心理学，专业课是学校自主命题，跨专业相对友好",
-      "早点定目标院校——不同学校专业课参考书目差异较大，早确定能省不少复习时间",
-      "本科阶段的实习和志愿经历现在就要开始攒，申请材料里这些经历很重要"
-  ]},
-  { label: "研究生在读，正在积累实践阶段", tips: [
-      "从现在开始留存实习证明和被督导记录，以后能直接用于注册申请",
-      "尽快想清楚毕业后走独立咨询还是医院体制内，两条路要准备的材料完全不一样",
-      "找一个稳定的督导，尽量做连续的个案而不是零散接触，被督导小时数的「含金量」看连续性",
-      "可以先小范围做一些线上咨询平台的兼职，提前适应真实来访者"
-  ]},
-  { label: "转行准备阶段", tips: [
-      "先确认要不要读应用心理硕士——这是目前认可度最高的入行路径，跨专业考生很常见",
-      "可以先从心理热线志愿者或朋辈辅导做起，边确认兴趣边攒经验，别一上来就裸辞",
-      "如果现在的工作和心理学沾点边（HR、教育、医疗相关），想想怎么把现有经验写进申请材料，会比完全跨行的申请人更有优势"
-  ]}
+const bookPool = ["心理学与生活","自卑与超越","社会性动物","深度关系","登天的感觉","如何调节母婴关系","梦的解析","蛤蟆先生去看心理医生"];
+
+const profile = [
+  [
+    { t: "还有很长的时间打基础，可以按自己的节奏慢慢积累，完全不用着急",
+      b1: { book: "心理学与生活", why: "内容全面，时间够的话可以当成「地基」慢慢啃" },
+      b2: { book: "自卑与超越", why: "阿德勒讲个体怎么在成长中建立自信，篇幅不长，也很适合现在慢慢读" } },
+    { t: "时间还够，从现在开始有意识地积累经历，会比大多数同龄人更早起步",
+      b1: { book: "自卑与超越", why: "阿德勒讲个体怎么在成长中建立自信和归属感，很适合这个阶段的自我探索" },
+      b2: { book: "心理学与生活", why: "系统打基础，正好配合这一年多的准备时间" } },
+    { t: "已经在思考这件事本身就说明你比很多同龄人更早开始规划，这是难得的清醒",
+      b1: { book: "社会性动物", why: "视角比入门书更宽，适合已经认真在规划方向的人" },
+      b2: { book: "登天的感觉", why: "真实个案记录，能帮你更早看清这行真实的样子" } },
+    { t: "比刚开始想这件事的高一学生多了一些阅历，这份工作恰恰需要一点生活阅历做支撑",
+      b1: { book: "深度关系", why: "需要一点阅历才能真正读懂，讲的是关系里更深层的心理" },
+      b2: { book: "登天的感觉", why: "真实个案记录，阅历越多读起来越有共鸣" } }
+  ],
+  [
+    { t: "很多人愿意对你打开心，说明你身上有让人放心的特质，这是共情力很重要的基础",
+      b1: { book: "登天的感觉", why: "真实个案记录，适合已经有共情基础、想看真实咨询是什么样子的人" },
+      b2: { book: "深度关系", why: "讲深层关系里的心理，跟你已经具备的这种「被信任感」很相关" } },
+    { t: "懂得分辨什么时候该主动关心、什么时候该给别人空间，这种判断力本身就很珍贵",
+      b1: { book: "心理学与生活", why: "系统打个基础，让你的判断力更有理论支撑" },
+      b2: { book: "社会性动物", why: "讲人和人之间怎么互相影响，帮你理解这份判断力背后的原理" } },
+    { t: "可能只是还没遇到愿意对你打开心的朋友——共情和倾听是可以练出来的技能，很多优秀的咨询师年轻时也不是「自来熟」的人",
+      b1: { book: "自卑与超越", why: "整本书讲的就是怎么建立连接和归属感，很适合刚开始探索这方面的人" },
+      b2: { book: "蛤蟆先生去看心理医生", why: "用故事讲情绪和关系，读起来没有压力，很适合当作起点" } }
+  ],
+  [
+    { t: "愿意主动靠近别人的情绪，这是很直接的共情表现",
+      b1: { book: "如何调节母婴关系", why: "讲的是最早期的情绪安抚是怎么发生的，帮你理解共情最底层的机制" },
+      b2: { book: "登天的感觉", why: "真实个案记录，能看到这份靠近别人情绪的能力在真实咨询里是怎么用的" } },
+    { t: "「愿意留下来」这件事本身就很珍贵——很多人第一反应是回避，具体的安慰技巧可以学，但这份愿意面对的心意练不出来",
+      b1: { book: "蛤蟆先生去看心理医生", why: "用故事讲清楚情绪是怎么运作的，很适合还在摸索怎么应对情绪的人" },
+      b2: { book: "心理学与生活", why: "系统讲情绪和心理机制，帮你把「愿意留下来」变成「知道怎么做」" } },
+    { t: "懂得尊重别人的边界、不强行介入，这在咨询里恰恰是很重要的能力",
+      b1: { book: "深度关系", why: "讲边界感和关系深浅的把握，跟你懂得留空间的直觉很契合" },
+      b2: { book: "自卑与超越", why: "讲的是怎么在尊重别人的前提下建立健康的关系" } }
+  ],
+  [
+    { t: "相信「说出来」是有用的，这正是咨询工作的核心信念",
+      b1: { book: "深度关系", why: "讲的正是「说出来」为什么真的有用，跟你的处理方式正好呼应" },
+      b2: { book: "登天的感觉", why: "真实个案记录，能看到「说出来」在真实咨询里具体是怎么发生的" } },
+    { t: "有很强的自我觉察能力，这是成为好咨询师的重要基础——咨询师首先要能觉察自己",
+      b1: { book: "梦的解析", why: "弗洛伊德的经典之作，讲的正是怎么通过内省理解潜意识里的想法，适合喜欢自己想清楚的人" },
+      b2: { book: "如何调节母婴关系", why: "从最早期的情绪发展讲起，帮你理解自我觉察是怎么一步步形成的" } },
+    { t: "有一套健康的情绪调节方式，这本身就是心理健康的体现，以后也能把这套经验用来帮别人",
+      b1: { book: "心理学与生活", why: "里面有专门讲情绪调节的章节，可以了解这套方式背后的原理" },
+      b2: { book: "蛤蟆先生去看心理医生", why: "用轻松的故事讲情绪调节，跟你这种健康的处理方式很搭" } }
+  ],
+  [
+    { t: "心理咨询本身大多是一对一或小团体的深度沟通，这个偏好正好和工作形式匹配",
+      b1: { book: "深度关系", why: "整本书都在讲一对一关系里的深层心理，跟你的偏好直接对应" },
+      b2: { book: "梦的解析", why: "经典的深度心理分析著作，适合喜欢深入、不喜欢浮于表面的人" } },
+    { t: "适应团体氛围的能力很吃香——以后可以往团体咨询、工作坊这类方向发展，也是很有需求的方向",
+      b1: { book: "社会性动物", why: "讲群体心理和社会影响，适合喜欢团体氛围的人" },
+      b2: { book: "心理学与生活", why: "覆盖面广，也讲了不少群体和社会心理的内容" } },
+    { t: "灵活是很大的优势，以后能选择的咨询形式和工作场景也更多",
+      b1: { book: "心理学与生活", why: "覆盖面广，个体和群体心理都讲到，适合灵活型的人" },
+      b2: { book: "社会性动物", why: "视角够宽，配合你灵活的性格正好合适" } }
+  ],
+  [
+    { t: "已经打了一点底子，接下来可以读得更深入一些",
+      b1: { book: "社会性动物", why: "视角比入门书更宽，是经典科普，适合往深一点读" },
+      b2: { book: "登天的感觉", why: "真实个案记录，比一般科普书更有深度" } },
+    { t: "会因为纯粹的兴趣主动来了解这件事，这种自发的动机比任何基础都重要",
+      b1: { book: "心理学与生活", why: "最经典的入门教材，虽然厚但写得很清楚" },
+      b2: { book: "自卑与超越", why: "篇幅不长，用故事感很强的方式讲心理学，适合当作第一本书" } },
+    { t: "敢啃硬骨头这件事本身值得肯定——看不懂只是因为教材是写给大学生的，不代表你不适合这个方向",
+      b1: { book: "蛤蟆先生去看心理医生", why: "小说体的心理科普，门槛低很多，比教材友好得多" },
+      b2: { book: "深度关系", why: "写作风格更轻松，比传统教材友好，也是很好的替代选择" } }
+  ]
 ];
 
-const trackInfo = {
-  hospital: { label: "医院体制内方向", bg: "var(--coral-bg)", fg: "var(--coral-text)",
-    tips: [
-      "目标是心理治疗师资格考试——国家卫健委和人社部联合发证，但要先进医疗机构工作，个人没法单独报名",
-      "求职时优先看医院精神科或心理科的岗位，为报考积累对口工作年限"
-    ],
-    note: "医院体制内这条路胜在稳定和成体系的职称晋升，但前期基本是打杂加跟诊，独立决策的空间比想象中小——如果你更看重自主和灵活度，这条路未必是最优选。"
-  },
-  independent: { label: "独立咨询方向", bg: "var(--accent-bg)", fg: "var(--accent-text)",
-    tips: [
-      "目标是中国心理学会的「注册心理师」——需要硕士学位、毕业满1年、攒够被督导小时数",
-      "读研期间就可以开始攒被督导的个体和团体小时数"
-    ],
-    note: "独立咨询这条路前几年基本靠低价个案和自己掏钱做督导熬资历，收入不稳定是常态——能不能扛到「熬出头」，很大程度取决于经济基础和心理预期是否匹配。"
-  },
-  undecided: { label: "两条路都还可以先探索", bg: "var(--gray-bg)", fg: "var(--gray-text)",
-    tips: [
-      "两条路对硕士学位的要求是一样的，读研期间不用急着二选一",
-      "可以借实习机会分别体验医院和独立咨询机构的工作日常，再做决定"
-    ],
-    note: "这两条路的辛苦程度都容易被低估——不是一份靠热情就能撑起来的工作，建议尽早找机会真实接触一段时间（哪怕只是做几个月志愿者），再决定要不要往下走。"
+function pickBook(slot, used){
+  if(!used.has(slot.b1.book)){ used.add(slot.b1.book); return slot.b1; }
+  if(!used.has(slot.b2.book)){ used.add(slot.b2.book); return slot.b2; }
+  for(let i=0;i<bookPool.length;i++){
+    if(!used.has(bookPool[i])){ used.add(bookPool[i]); return { book: bookPool[i], why: "这本书也很适合现在的你，值得找机会读一读" }; }
   }
-};
+  return slot.b1;
+}
 
-const resources = [
-  "《心理学与生活》——入门教材，比零散的科普文章扎实，很多学校的普心课也用这本",
-  "中国心理学会官网（chinacpb.net）——注册心理师的标准原文在这里，别只看培训机构的转述"
-];
+const certNote = "很多培训机构会说「考个证就能当心理咨询师」——这基本不准确。2017年起国家已经取消了统一的「心理咨询师」资格考试，市面上大部分培训证书含金量很有限。真正被行业认可的路径是：本科（专业不限）→应用心理硕士（考研，2-3年）→读研期间和毕业后攒够被督导的实践小时数→申请中国心理学会的「注册心理师」。这条路比「考个证」长得多，但也扎实得多。";
 
 let currentIndex = 0;
 let answers = [];
@@ -139,7 +168,7 @@ function showIntro(){
   currentIndex = 0; answers = [];
   root.innerHTML = '<div class="card">' +
     '<h1>心理咨询师职业路径测评</h1>' +
-    '<p class="sub">回答4个小问题，看看你现在在哪个阶段，更适合哪条路</p>' +
+    '<p class="sub">回答6个小问题，看看你身上已经有哪些适合这条路的特质</p>' +
     '<button class="primary" onclick="startQuiz()">开始测评 →</button></div>';
 }
 function startQuiz(){ currentIndex = 0; answers = []; showQuestion(); }
@@ -163,30 +192,49 @@ function showSubmitting(){
   root.innerHTML = '<div class="card"><div class="loading">正在生成你的专属建议…</div></div>';
   setTimeout(showResult, 900);
 }
-function computeResult(){
-  const stage = stageMap[answers[0]];
-  let h = 0, ind = 0;
-  if(answers[2] === 0) h++;
-  if(answers[2] === 1) ind++;
-  if(answers[3] === 0) h++;
-  if(answers[3] === 1) ind++;
-  let key = 'undecided';
-  if(h > ind) key = 'hospital'; else if(ind > h) key = 'independent';
-  return { stage: stage, track: trackInfo[key], crossMajor: answers[1] === 2 };
+function flowerGraphic(){
+  return '<svg width="150" height="95" viewBox="0 0 150 95" style="display:block; margin:0 auto 18px;">' +
+    '<ellipse cx="46" cy="80" rx="14" ry="7" fill="#86c99d" transform="rotate(-25 46 80)"/>' +
+    '<ellipse cx="108" cy="82" rx="13" ry="6" fill="#9ed6af" transform="rotate(20 108 82)"/>' +
+    '<ellipse cx="75" cy="86" rx="12" ry="6" fill="#86c99d" transform="rotate(-5 75 86)"/>' +
+    '<g transform="translate(35,58)">' +
+      '<ellipse cx="0" cy="-13" rx="6" ry="12" fill="#c4b5fd" transform="rotate(0)"/>' +
+      '<ellipse cx="0" cy="-13" rx="6" ry="12" fill="#c4b5fd" transform="rotate(72)"/>' +
+      '<ellipse cx="0" cy="-13" rx="6" ry="12" fill="#c4b5fd" transform="rotate(144)"/>' +
+      '<ellipse cx="0" cy="-13" rx="6" ry="12" fill="#c4b5fd" transform="rotate(216)"/>' +
+      '<ellipse cx="0" cy="-13" rx="6" ry="12" fill="#c4b5fd" transform="rotate(288)"/>' +
+      '<circle cx="0" cy="0" r="6" fill="#fef3c7"/>' +
+    '</g>' +
+    '<g transform="translate(75,45)">' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(0)"/>' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(60)"/>' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(120)"/>' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(180)"/>' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(240)"/>' +
+      '<ellipse cx="0" cy="-18" rx="8" ry="17" fill="#f472b6" transform="rotate(300)"/>' +
+      '<circle cx="0" cy="0" r="8" fill="#fde047"/>' +
+    '</g>' +
+    '<g transform="translate(115,60)">' +
+      '<ellipse cx="0" cy="-11" rx="5" ry="10" fill="#93c5fd" transform="rotate(0)"/>' +
+      '<ellipse cx="0" cy="-11" rx="5" ry="10" fill="#93c5fd" transform="rotate(72)"/>' +
+      '<ellipse cx="0" cy="-11" rx="5" ry="10" fill="#93c5fd" transform="rotate(144)"/>' +
+      '<ellipse cx="0" cy="-11" rx="5" ry="10" fill="#93c5fd" transform="rotate(216)"/>' +
+      '<ellipse cx="0" cy="-11" rx="5" ry="10" fill="#93c5fd" transform="rotate(288)"/>' +
+      '<circle cx="0" cy="0" r="5" fill="#fde047"/>' +
+    '</g>' +
+  '</svg>';
 }
 function showResult(){
-  const r = computeResult();
-  let tips = r.stage.tips.concat(r.track.tips);
-  if(r.crossMajor){ tips.push("跨专业不是问题，但专业课备考建议比心理学本科的同学多留2-3个月时间"); }
-  const tipsHtml = tips.map(function(t){ return '<li>' + t + '</li>'; }).join('');
-  const resHtml = resources.map(function(t){ return '<li>' + t + '</li>'; }).join('');
-  root.innerHTML = '<div class="card">' +
-    '<div class="label">当前阶段</div><div class="stage">' + r.stage.label + '</div>' +
-    '<div class="label">更适合的方向</div>' +
-    '<div class="badge" style="background:' + r.track.bg + '; color:' + r.track.fg + ';">' + r.track.label + '</div>' +
-    '<div class="label">具体可以做的事</div><ul class="tips">' + tipsHtml + '</ul>' +
-    '<div class="label">推荐资源</div><ul class="tips">' + resHtml + '</ul>' +
-    '<div class="honest-note">' + r.track.note + '</div>' +
+  const used = new Set();
+  const profileHtml = answers.map(function(a,i){
+    const slot = profile[i][a];
+    const picked = pickBook(slot, used);
+    return '<li>' + slot.t + '<div class="book-pick">📖《' + picked.book + '》——' + picked.why + '</div></li>';
+  }).join('');
+  root.innerHTML = '<div class="card">' + flowerGraphic() +
+    '<div class="label">你的潜质画像 + 专属书单</div><ul class="tips profile">' + profileHtml + '</ul>' +
+    '<div class="label">关于证书，先说清楚一个坑</div>' +
+    '<div class="honest-note">' + certNote + '</div>' +
     '<button class="primary" onclick="showIntro()" style="margin-top:20px;">重新测一次</button>' +
   '</div>';
 }
